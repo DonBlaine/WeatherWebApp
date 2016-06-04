@@ -1,0 +1,104 @@
+header {
+	top: 0;
+	width: 100%;
+	background-color: ghostwhite;
+	text-align: center;
+	font-size: 60px;
+	font-style: italic;
+	font-weight: 700;
+}
+
+body{
+	background-color: skyblue;
+}
+
+footer {
+	bottom: 0;
+	width: 100%;
+	background-color: ghostwhite;
+	text-align: center;
+	font-size: 60px;
+	font-style: italic;
+	font-weight: 700;
+	height: 70px;
+	float: right;
+	margin-top: 60px;
+}
+
+#space {
+	padding: 20px;
+}
+
+form {
+	margin: 0 auto;
+	border: 3px solid;
+	padding: 10px;
+	width: 80%;
+	background-color: gainsboro;
+	overflow: hidden;
+}
+
+label {
+	float: left;
+	margin: 10 auto;
+	padding: 20px;
+}
+
+input {
+	margin-top: 10px;
+	font-size: 15px;
+}
+
+#mapsection {
+	padding: 5px;
+	border: 3px solid;
+	text-align: center;
+	width: 450px;
+	height: 390px;
+	font-size: 25px;
+	font-style: italic;
+	font-weight: 700;
+	background-color: white;
+	margin-left: 5%;
+	display: inline-block;
+}
+
+#weatherholder {
+	width: 640px;
+	height: 750px;
+	float: right;
+	margin-right: 5%;
+}
+
+table {
+	background-color: white;
+	margin-left: auto;
+	margin-right: auto;
+	display: inline-block;
+}
+
+th {
+	text-align: center;
+	font-size: 13px;
+	font-weight: 700;
+	padding: 10px;
+	font-style: italic;
+	max-width: 50px;
+	min-width: 50px;
+}
+
+tr {
+	border-bottom: 1px solid;
+	
+}
+
+.data:hover {
+	background-color: lightgray;
+}
+
+td {
+	padding: 10px;
+	font-size: 12px;
+	max-width: 50px;
+	min-width: 50px;
+}

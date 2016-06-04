@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Forecaster</title>
+	<script src="https://code.jquery.com/jquery-2.2.2.min.js"></script>
+	<script src="http://maps.googleapis.com/maps/api/js"></script>
+	<link rel="stylesheet" type="text/css" href="css/reset.css">
+	<link rel="stylesheet" type="text/css" href="css/forcaster.css">
+
+</head>
+		
+<body background = cloud.jpg alt="Cloud image">
+<!--http://www.cuewallpaper.xyz/wp-content/uploads/2016/03/Storm-Cloud-Wallpaper-C25.jpg source for cloud pic -->
+	
+<header>Forecaster</header>
+	<p id= space></p>
+	
+<form>
+	<label>
+  	Location:<br>
+  	<input type="text" name="location" value="Dublin"><br>
+	</label>
+	<label>
+	Unit type: <br>
+	<input type="radio" name="unit" value="metric" checked> Metric<br>
+  	<input type="radio" name="unit" value="imperial"> Imperial<br>
+	</label>
+	<label>
+  	Number of display days: <br>
+	<input type="radio" name="days" value="1"> One
+  	<input type="radio" name="days" value="2"> Two<br>
+	<input type="radio" name="days" value="3" checked> Three
+	<input type="radio" name="days" value="4"> Four<br>
+	<input type="radio" name="days" value="5"> Five<br>
+	</label>
+	<label>
+	Information: <br>
+	<input type="checkbox" name="Summary" value="1" checked> Summary
+	<input type="checkbox" name="Temperature" value="1" checked> Temperature<br>
+	<input type="checkbox" name="Rainfall" value="1" checked> Rainfall
+	<input type="checkbox" name="Pressure" value="1" checked> Pressure<br>
+	<input type="checkbox" name="Humidity" value="1" checked> Humidity
+	<input type="checkbox" name="WindSpeed" value="1" checked> Wind Speed<br>
+	</label>
+	<label>
+	<!--search button taken from http://findicons.com/files/icons/1786/oxygen_refit/128/gnome_search_tool.png-->
+	<input style="width:80px;height:80px;" type="image" name="submit" src="search.png" border="0" alt="Submit" value="Submit"/>
+	</label>
+</form>		
+	
+<p id= space></p>
+
+<script>
+	
+	// inspired by jquery documentation https://api.jquery.com/serializeArray
+	
+var form = $('form');
+
+	
+function getFormData(form) {
+  var formData = { };
+  var serializedForm = form.serializeArray();
+  for(var i = 0; i < serializedForm.length; i++){
+  	var data = serializedForm[i];
+    formData[data.name] = data.value;
+  };
+  console.log(formData);  
+  return formData;
+}	
+	
+form.on('submit',function(event) {
+	event.preventDefault();
+	var formData = getFormData(form);
+	console.log(form.serializeArray());
+	console.log("form submitted");
+	event.preventDefault();
+	
+
+//get the lat/lng coordinates of the city entered into the location box.	
+jQuery.get("https://maps.googleapis.com/maps/api/geocode/json?address="+formData.location, function(data){
+	console.log(data);
+	
+	if (data.status == "ZERO_RESULTS" ){
+		alert("Error, no location found");
+	}
+	else{
+		
+	var lat = data.results[0].geometry.location.lat;
+	var lng = data.results[0].geometry.location.lng;
+		   
+	
+	//api request to get the openweather data given the coordinates. 	
+	jQuery.get("http://api.openweathermap.org/data/2.5/forecast/daily?lat="+lat+"&lon="+lng+"&mode=json&appid=ca5ed0adb844b549fec4179d3f085641&units="+formData.unit+"&cnt="+formData.days, function( data2 ) {
+		console.log(data2);
+
+		var munit = 0;
+
+		if (formData.unit == "imperial") {
+			munit = 1;
+		}
+
+		var weathertable0 = "<table><tr><th>Day</th><th></th>"; 
+		if (formData.Summary==1){
+			weathertable0+="<th>Summary</th>";
+		}
+		if (formData.Temperature == 1) {
+			weathertable0 +="<th>Min Temp</th><th>Max Temp</th>";
+		}
+		if (formData.Pressure == 1) {
+			weathertable0+="<th>Pressure</th>";
+
+		}
+		if (formData.Humidity == 1) {
+			weathertable0+="<th>Humidity</th>";
+
+		}
+		if (formData.Rainfall == 1) {
+			weathertable0+="<th>Rainfall</th>";
+
+		}
+		if (formData.WindSpeed == 1) {
+			weathertable0+= "<th>Wind Speed</th></tr>";
+
+		}
+		weathertable0 +="</table>";
+		document.getElementById("weathersection0").innerHTML = weathertable0;
+		var weathertable = "<table>";
+
+		for (var i=0;i<formData.days;i++) {
+
+			var day = new Date(data2.list[i].dt*1000);
+			switch (day.getDay()) {
+			case 0:
+				day = "Sunday";
+				break;
+			case 1:
+				day = "Monday";
+				break;
+			case 2:
+				day = "Tuesday";
+				break;
+			case 3:
+				day = "Wednesday";
+				break;
+			case 4:
+				day = "Thursday";
+				break;
+			case 5:
+				day = "Friday";
+				break;
+			case  6:
+				day = "Saturday";
+				break;
+
+			}
+			weathertable  += "<tr class = \"data\"><td>"+day+"</td>";
+
+			var icon = data2.list[i].weather[0].icon;
+			weathertable  += "<td><img src = \"https://openweathermap.org/img/w/"+icon+ ".png\" alt = \"icon\"></td>";
+
+			if (formData.Summary == 1) {
+				var summary = data2.list[i].weather[0].description;
+				weathertable += "<td>"+summary+"</td>";
+			}
+
+			if (formData.Temperature == 1) {
+				var min= data2.list[i].temp.min;
+				var max =data2.list[i].temp.max;
+				if (munit == 1){
+					weathertable +="<td>"+min+" Fahrenheit</td><td>"+max+" Fahrenheit</td>";
+				}
+				else{
+					weathertable +="<td>"+min+" Celsius</td><td>"+max+" Celsius</td>";
+				}
+			}
+			if (formData.Pressure == 1) {
+				var pressure = data2.list[i].pressure;
+				weathertable +="<td>"+pressure+" hPa</td>";
+			}
+			if (formData.Humidity == 1) {
+				var humidity = data2.list[i].humidity;
+				weathertable +="<td>"+humidity+" %</td>";
+			}
+			if (formData.Rainfall == 1) {
+				var rain = 0;
+				var rainfall = data2.list[i].rain || rain;
+				weathertable +="<td>"+rainfall+" mm</td>";
+			}
+			if (formData.WindSpeed == 1) {
+				var speed = data2.list[i].speed;
+				if (munit == 1){
+					weathertable +="<td>"+speed+" mph</td>";
+				}
+				else{
+					weathertable +="<td>"+speed+" mps</td>";
+				}
+
+			}
+			weathertable +="</tr>";
+			}
+			weathertable+="</table>";
+			document.getElementById("weathersection").innerHTML = weathertable;
+			console.log(weathertable);
+
+		//this is the jquery code to perfrom the table click functions
+		
+			$("tr").click( function() {
+   				var x = $(this).index();
+				var stop = (x+1)*8
+				var j = x*8
+				console.log(stop);
+				console.log(j);
+				
+				jQuery.get("http://api.openweathermap.org/data/2.5/forecast?lat="+lat+"&lon="+lng+"&mode=json&appid=ca5ed0adb844b549fec4179d3f085641&units="+formData.unit, function( data3 ) {
+				console.log(data3);
+				
+				var weathertable2 = "<table>";	
+					
+				for(j;j<stop;j++){
+				
+				console.log("loop");
+				var time = new Date(data3.list[j].dt*1000);
+				var time2 = time.getHours(); 
+				weathertable2  += "<tr class = \"data\"><td>"+time2+":00:00</td>";
+					
+				var icon = data3.list[j].weather[0].icon;
+					
+				weathertable2  += "<td><img src=\"https://openweathermap.org/img/w/"+icon+ ".png\" alt = \"icon\"></td>";	
+				
+				if (formData.Summary == 1) {
+				var summary = data3.list[j].weather[0].description;
+				weathertable2 += "<td>"+summary+"</td>";
+				}
+
+				if (formData.Temperature == 1) {
+					var min= data3.list[j].main.temp_min;
+					var max =data3.list[j].main.temp_max;
+					if (munit == 1){
+						weathertable2 +="<td>"+min+" Fahrenheit</td><td>"+max+" Fahrenheit</td>";
+					}
+					else{
+						weathertable2 +="<td>"+min+" Celsius</td><td>"+max+" Celsius</td>";
+					}
+				}
+				if (formData.Pressure == 1) {
+					var pressure = data3.list[j].main.pressure;
+					weathertable2 +="<td>"+pressure+" hPa</td>";
+				}
+				if (formData.Humidity == 1) {
+					var humidity = data3.list[j].main.humidity;
+					weathertable2 +="<td>"+humidity+" %</td>";
+				}
+				if (formData.Rainfall == 1) {
+					var zzz= data3.list[j].rain["3h"];
+					console.log(zzz);
+					rain = 0;
+					rainfall = zzz || rain;
+					weathertable2 +="<td>"+rainfall+" mm</td>";
+					
+				}
+				if (formData.WindSpeed == 1) {
+					var speed = data3.list[j].wind.speed;
+					if (munit == 1){
+						weathertable2 +="<td>"+speed+" mph</td>";
+					}
+					else{
+						weathertable2 +="<td>"+speed+" mps</td>";
+					}
+				 
+				}
+				weathertable2+="</tr>";
+				}
+				
+				weathertable2 +="</table>"
+				console.log(weathertable2);
+				document.getElementById("weathersection").innerHTML = weathertable2;
+				
+				
+				});
+				});
+				
+				
+	//this google maps request script was inspired by the example in w3schools
+	var myCenter=new google.maps.LatLng(lat,lng);
+
+	function initialize() {
+		  var mapProp = {
+			center:myCenter,
+			zoom:11,
+			mapTypeId:google.maps.MapTypeId.ROADMAP
+		  };
+		 var map=new google.maps.Map(document.getElementById("googleMap"),mapProp);
+
+		var trafficLayer = new google.maps.TrafficLayer();
+		 trafficLayer.setMap(map);
+
+		var marker=new google.maps.Marker({
+		position: myCenter,
+	  });
+
+	marker.setMap(map);
+	}
+
+	initialize();
+
+			
+});
+}	
+});
+});
+	
+	</script>
+
+	
+<div id= "mapsection">
+	<p>Location Map</p><br>
+	<div id="googleMap" style="width:450px;height:342px;">
+		<div id="startMap" style="width:450px;height:342px;"></div>
+	</div>
+</div>
+<!--sun image taken from http://www.vector-eps.com/wp-content/gallery/sun-smiley-face-expressions-vector/sun-smiley-face-expression-vector1.jpg -->
+<div id= "weatherholder">
+	<div id= "weathersection0"></div>
+	<p id= space></p>
+	<div id= "weathersection"></div>
+</div>	
+
+<script>
+var myCenter=new google.maps.LatLng(53.3498053,-6.2603097);
+
+function start() {
+	  var mapProp = {
+		center:myCenter,
+		zoom:11,
+		mapTypeId:google.maps.MapTypeId.ROADMAP
+	  };
+	 var map=new google.maps.Map(document.getElementById("startMap"),mapProp);
+	
+	 var trafficLayer = new google.maps.TrafficLayer();
+	 trafficLayer.setMap(map);
+	
+	var marker=new google.maps.Marker({
+  	position: myCenter,
+  });
+
+marker.setMap(map);
+}
+	
+start();
+
+</script>
+
+
+<p id= space></p>
+<p id= space></p>	
+<footer>Forecaster</footer>
+	
+</body>
+
+</html>
